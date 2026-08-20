@@ -224,7 +224,7 @@
             </table>
 
             <div id="backupSection" class="backup-section">
-                <h3>⏳ 剩餘預備組抽籤順序 (依序遞補)</h3>
+                <h3>⏳ 剩餘預備組抽籤順序（所有未排入正式週次者，依序遞補）</h3>
                 <p id="backupList"></p>
             </div>
         </div>
@@ -509,7 +509,24 @@
             }
         });
 
-        const backupPool = shuffledNormalTeachers.slice(usedNormalCount);
+        // 5. 建立完整預備組
+        // 所有「符合導護資格但未排入40個正式週次」的人都必須進入預備組，
+        // 不只一般教師，也包含六年級、一三五導師及3、5年級新接班導師。
+        const scheduledTeachers = new Set(
+            finalSchedule.filter(name => name !== null)
+        );
+
+        const allEligibleTeachers = [
+            ...g6Teachers,
+            ...g135Teachers,
+            ...newClassTeachers,
+            ...normalTeachers
+        ];
+
+        const backupPool = shuffle(
+            allEligibleTeachers.filter(name => !scheduledTeachers.has(name))
+        );
+
         finalBackupData = [...backupPool];
         finalScheduleData = [];
 
@@ -551,7 +568,9 @@
 
         const backupListP = document.getElementById('backupList');
         if (backupPool.length > 0) {
-            backupListP.innerHTML = backupPool.map((t, idx) => `<b>(順位${idx+1})</b> ${t}`).join(' &nbsp;&nbsp;→&nbsp;&nbsp; ');
+            backupListP.innerHTML =
+                `<b>共 ${backupPool.length} 位：</b> ` +
+                backupPool.map((t, idx) => `<b>(順位${idx+1})</b> ${t}`).join(' &nbsp;&nbsp;→&nbsp;&nbsp; ');
         } else {
             backupListP.innerText = "所有可用老師皆已排入輪值，無剩餘預備組人員。";
         }
